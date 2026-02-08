@@ -218,14 +218,10 @@ function App() {
     <div className="container">
       <header className="header">
         <div>
-          <div className="title">SplitBook + ENS</div>
-          <div className="subtitle">
-            ENS on mainnet • SplitBook on Sepolia
-          </div>
+          <div className="title">SplitBook</div>
+          <div className="subtitle">Verified identities for split payouts</div>
         </div>
         <div className="row">
-          <span className="badge">ENS: Mainnet</span>
-          <span className="badge">Contract: Sepolia</span>
           {isConnected && chainId !== sepolia.id && (
             <button
               className="btn"

@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="g" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(160 140) rotate(50) scale(360)">
+      <stop stop-color="#2FFFD5" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#0B0D12" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="a" x1="90" y1="120" x2="420" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2FFFD5"/>
+      <stop offset="1" stop-color="#20C7A8"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="#0B0D12"/>
+  <circle cx="256" cy="256" r="210" fill="url(#g)"/>
+  <circle cx="256" cy="256" r="164" stroke="#2FFFD5" stroke-opacity="0.4" stroke-width="10"/>
+  <path d="M130 328C170 248 236 200 320 184" stroke="url(#a)" stroke-width="14" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M192 352C270 334 322 282 352 204" stroke="url(#a)" stroke-width="14" stroke-linecap="round" filter="url(#glow)"/>
+  <circle cx="256" cy="256" r="16" fill="#2FFFD5"/>
+  <circle cx="256" cy="256" r="84" stroke="#20C7A8" stroke-opacity="0.7" stroke-width="6"/>
+</svg>
