@@ -1,0 +1,2 @@
+export const SPLITBOOK_ADDRESS =
+  '0xb98C1c36be289fe7eDBe6F0bFbFaB963b238401A' as const

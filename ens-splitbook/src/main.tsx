@@ -5,12 +5,12 @@ import './index.css'
 
 import { WagmiProvider, createConfig, http } from 'wagmi'
 import { sepolia, mainnet } from 'wagmi/chains'
-import { injected } from 'wagmi/connectors'
+import { injected, metaMask } from 'wagmi/connectors'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const config = createConfig({
   chains: [sepolia, mainnet],
-  connectors: [injected()],
+  connectors: [metaMask(), injected()],
   transports: {
     [sepolia.id]: http(),
     [mainnet.id]: http(),
