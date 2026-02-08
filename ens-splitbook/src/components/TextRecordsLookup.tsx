@@ -68,6 +68,9 @@ export function TextRecordsLookup() {
   return (
     <section className="card">
       <div className="section-title">ENS Text Records</div>
+      <div className="muted">
+        Text records are optional ENS metadata and may be empty.
+      </div>
       <label className="stack">
         <span className="muted">ENS name</span>
         <input

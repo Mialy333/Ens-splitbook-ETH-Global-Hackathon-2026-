@@ -207,6 +207,13 @@ button {
     Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
+.mono.wrap {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .muted {
   color: var(--muted);
 }

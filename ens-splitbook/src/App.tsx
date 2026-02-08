@@ -6,6 +6,7 @@ import {
   useDisconnect,
   useEnsAvatar,
   useEnsName,
+  useEnsAddress,
   useChainId,
   useReadContract,
   useSwitchChain,
@@ -13,6 +14,7 @@ import {
   useWriteContract,
 } from 'wagmi'
 import { isAddress } from 'viem'
+import { normalize } from 'viem/ens'
 import { mainnet, sepolia } from 'wagmi/chains'
 import { SPLITBOOK_ADDRESS } from './lib/contract'
 import { splitbookAbi } from './lib/splitbookAbi'
@@ -32,11 +34,8 @@ function App() {
   } = useConnect()
   const { disconnect } = useDisconnect()
   const chainId = useChainId()
-  const {
-    switchChain,
-    isPending: isSwitching,
-    error: switchError,
-  } = useSwitchChain()
+  const { switchChain, isPending: isSwitching, error: switchError } =
+    useSwitchChain()
 
   const ensName = useEnsName({ address, chainId: mainnet.id })
   const ensAvatar = useEnsAvatar({
@@ -75,6 +74,23 @@ function App() {
   const [recipientsInput, setRecipientsInput] = useState('')
   const [bpsInput, setBpsInput] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [ensRecipientInput, setEnsRecipientInput] = useState('')
+  const [ensRecipientError, setEnsRecipientError] = useState<string | null>(null)
+
+  const normalizedEnsRecipient = useMemo(() => {
+    if (!ensRecipientInput.trim()) return ''
+    try {
+      return normalize(ensRecipientInput.trim())
+    } catch {
+      return ''
+    }
+  }, [ensRecipientInput])
+
+  const ensRecipientResolved = useEnsAddress({
+    name: normalizedEnsRecipient || undefined,
+    chainId: mainnet.id,
+    query: { enabled: !!normalizedEnsRecipient },
+  })
 
   const parsedSplit = useMemo(() => {
     if (!splitRead.data) return [] as SplitRow[]
@@ -82,7 +98,8 @@ function App() {
     return recipients.map((addr, i) => ({ address: addr, bps: Number(bps[i]) }))
   }, [splitRead.data])
 
-  const hasInjectedProvider = typeof window !== 'undefined' && !!window.ethereum
+  const hasInjectedProvider =
+    typeof window !== 'undefined' && !!window.ethereum
   const canConnect = connectors.length > 0 && hasInjectedProvider
   const injectedConnector =
     connectors.find((c) => c.id === 'metaMask') ??
@@ -94,6 +111,49 @@ function App() {
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line.length > 0)
+  }
+
+  function appendRecipientAddress(next: string) {
+    const current = parseLines(recipientsInput)
+    if (current.includes(next)) {
+      setEnsRecipientError('Recipient already added.')
+      return
+    }
+    const updated = [...current, next].join('\n')
+    setRecipientsInput(updated)
+    setEnsRecipientInput('')
+    setEnsRecipientError(null)
+  }
+
+  function onAddEnsRecipient() {
+    setEnsRecipientError(null)
+
+    if (!ensRecipientInput.trim()) {
+      setEnsRecipientError('Enter an ENS name.')
+      return
+    }
+
+    if (!normalizedEnsRecipient) {
+      setEnsRecipientError('Invalid ENS name.')
+      return
+    }
+
+    if (ensRecipientResolved.isLoading) {
+      setEnsRecipientError('Resolving ENS name...')
+      return
+    }
+
+    if (!ensRecipientResolved.data) {
+      setEnsRecipientError('No address found for this ENS name.')
+      return
+    }
+
+    if (!isAddress(ensRecipientResolved.data)) {
+      setEnsRecipientError('Resolved address is invalid.')
+      return
+    }
+
+    appendRecipientAddress(ensRecipientResolved.data)
   }
 
   async function onSubmit(e: FormEvent) {
@@ -159,7 +219,9 @@ function App() {
       <header className="header">
         <div>
           <div className="title">SplitBook + ENS</div>
-          <div className="subtitle">ENS on mainnet • SplitBook on Sepolia</div>
+          <div className="subtitle">
+            ENS on mainnet • SplitBook on Sepolia
+          </div>
         </div>
         <div className="row">
           <span className="badge">ENS: Mainnet</span>
@@ -183,10 +245,7 @@ function App() {
               <div className="section-title">Wallet + ENS Profile</div>
               <div className="row" style={{ justifyContent: 'flex-end' }}>
                 {isConnected ? (
-                  <button
-                    className="btn secondary"
-                    onClick={() => disconnect()}
-                  >
+                  <button className="btn secondary" onClick={() => disconnect()}>
                     Disconnect
                   </button>
                 ) : (
@@ -228,11 +287,7 @@ function App() {
                     <img
                       src={ensAvatar.data}
                       alt="ENS avatar"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
                     'No avatar'
@@ -243,7 +298,7 @@ function App() {
                     {ensName.data ?? 'No ENS name set'}
                   </div>
                   <div className="row" style={{ justifyContent: 'flex-start' }}>
-                    <div className="mono">{address}</div>
+                    <div className="mono wrap">{address}</div>
                     <CopyButton value={address} label="Copy" />
                   </div>
                 </div>
@@ -297,6 +352,28 @@ function App() {
                   rows={4}
                 />
               </label>
+              <div className="stack">
+                <span className="muted">Add recipient by ENS name</span>
+                <div className="row" style={{ justifyContent: 'flex-start' }}>
+                  <input
+                    className="input"
+                    value={ensRecipientInput}
+                    onChange={(e) => setEnsRecipientInput(e.target.value)}
+                    placeholder="name.eth"
+                  />
+                  <button
+                    className="btn secondary"
+                    type="button"
+                    onClick={onAddEnsRecipient}
+                    disabled={!ensRecipientInput.trim()}
+                  >
+                    Add
+                  </button>
+                </div>
+                {ensRecipientError && (
+                  <div className="notice error">{ensRecipientError}</div>
+                )}
+              </div>
               <label className="stack">
                 <span className="muted">Bps (one per line, sum to 10000)</span>
                 <textarea
@@ -321,7 +398,7 @@ function App() {
             {submittedHash && (
               <div className="stack">
                 <div className="row" style={{ justifyContent: 'flex-start' }}>
-                  <div className="mono">{submittedHash}</div>
+                  <div className="mono wrap">{submittedHash}</div>
                   <CopyButton value={submittedHash} label="Copy" />
                 </div>
                 <div className="notice pending">

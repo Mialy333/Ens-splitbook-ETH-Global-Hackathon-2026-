@@ -1,2 +1,2 @@
 export const SPLITBOOK_ADDRESS =
-  '0xb98C1c36be289fe7eDBe6F0bFbFaB963b238401A' as const
+  '0x700f744E7ab35332683c4Cc0b653D18a176150dA' as const
