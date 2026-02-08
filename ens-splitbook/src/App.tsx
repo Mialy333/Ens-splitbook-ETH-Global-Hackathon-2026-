@@ -18,12 +18,7 @@ import { SPLITBOOK_ADDRESS } from './lib/contract'
 import { splitbookAbi } from './lib/splitbookAbi'
 import { RecipientLine } from './components/RecipientLine'
 import { TextRecordsLookup } from './components/TextRecordsLookup'
-
-declare global {
-  interface Window {
-    ethereum?: unknown
-  }
-}
+import { CopyButton } from './components/CopyButton'
 
 type SplitRow = { address: `0x${string}`; bps: number }
 
@@ -37,11 +32,8 @@ function App() {
   } = useConnect()
   const { disconnect } = useDisconnect()
   const chainId = useChainId()
-  const {
-    switchChain,
-    isPending: isSwitching,
-    error: switchError,
-  } = useSwitchChain()
+  const { switchChain, isPending: isSwitching, error: switchError } =
+    useSwitchChain()
 
   const ensName = useEnsName({ address, chainId: mainnet.id })
   const ensAvatar = useEnsAvatar({
@@ -87,7 +79,8 @@ function App() {
     return recipients.map((addr, i) => ({ address: addr, bps: Number(bps[i]) }))
   }, [splitRead.data])
 
-  const hasInjectedProvider = typeof window !== 'undefined' && !!window.ethereum
+  const hasInjectedProvider =
+    typeof window !== 'undefined' && !!window.ethereum
   const canConnect = connectors.length > 0 && hasInjectedProvider
   const injectedConnector =
     connectors.find((c) => c.id === 'metaMask') ??
@@ -160,215 +153,184 @@ function App() {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: 760,
-        margin: '0 auto',
-        padding: '32px 16px 64px',
-        textAlign: 'left',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 24,
-      }}
-    >
-      <header style={{ display: 'flex', justifyContent: 'space-between' }}>
+    <div className="container">
+      <header className="header">
         <div>
-          <div style={{ fontSize: 22, fontWeight: 700 }}>SplitBook + ENS</div>
-          <div style={{ color: '#666', marginTop: 4 }}>
+          <div className="title">SplitBook + ENS</div>
+          <div className="subtitle">
             ENS on mainnet • SplitBook on Sepolia
           </div>
         </div>
-        <div>
-          {isConnected ? (
-            <div style={{ display: 'flex', gap: 8 }}>
-              {chainId !== sepolia.id && (
-                <button
-                  onClick={() => switchChain({ chainId: sepolia.id })}
-                  disabled={isSwitching}
-                >
-                  {isSwitching ? 'Switching…' : 'Switch to Sepolia'}
-                </button>
-              )}
-              <button onClick={() => disconnect()}>Disconnect</button>
-            </div>
-          ) : (
+        <div className="row">
+          <span className="badge">ENS: Mainnet</span>
+          <span className="badge">Contract: Sepolia</span>
+          {isConnected && chainId !== sepolia.id && (
             <button
-              onClick={() =>
-                injectedConnector && connect({ connector: injectedConnector })
-              }
-              disabled={!canConnect || isConnecting || !injectedConnector}
+              className="btn"
+              onClick={() => switchChain({ chainId: sepolia.id })}
+              disabled={isSwitching}
             >
-              {!hasInjectedProvider
-                ? 'Install MetaMask'
-                : isConnecting
-                  ? 'Connecting…'
-                  : 'Connect MetaMask'}
+              {isSwitching ? 'Switching…' : 'Switch to Sepolia'}
             </button>
           )}
         </div>
       </header>
 
-      {connectError && (
-        <div style={{ color: '#b00020' }}>{connectError.message}</div>
-      )}
-      {switchError && (
-        <div style={{ color: '#b00020' }}>{switchError.message}</div>
-      )}
-      {!hasInjectedProvider && (
-        <div style={{ color: '#b00020' }}>
-          No injected wallet detected. Install or enable MetaMask, then reload.
-        </div>
-      )}
-
-      <section
-        style={{
-          border: '1px solid #e4e4e7',
-          borderRadius: 12,
-          padding: 16,
-        }}
-      >
-        <div style={{ fontWeight: 600, marginBottom: 8 }}>
-          Wallet + ENS Profile
-        </div>
-        {isConnected && address ? (
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                background: '#f3f4f6',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 12,
-                color: '#666',
-              }}
-            >
-              {ensAvatar.data ? (
-                <img
-                  src={ensAvatar.data}
-                  alt="ENS avatar"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                'No avatar'
-              )}
-            </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>
-                {ensName.data ?? 'No ENS name set'}
+      <div className="grid">
+        <div className="stack">
+          <section className="card">
+            <div className="row">
+              <div className="section-title">Wallet + ENS Profile</div>
+              <div className="row" style={{ justifyContent: 'flex-end' }}>
+                {isConnected ? (
+                  <button className="btn secondary" onClick={() => disconnect()}>
+                    Disconnect
+                  </button>
+                ) : (
+                  <button
+                    className="btn"
+                    onClick={() =>
+                      injectedConnector &&
+                      connect({ connector: injectedConnector })
+                    }
+                    disabled={!canConnect || isConnecting || !injectedConnector}
+                  >
+                    {!hasInjectedProvider
+                      ? 'Install MetaMask'
+                      : isConnecting
+                        ? 'Connecting…'
+                        : 'Connect MetaMask'}
+                  </button>
+                )}
               </div>
-              <div style={{ color: '#666' }}>{address}</div>
             </div>
-          </div>
-        ) : (
-          <div style={{ color: '#666' }}>Not connected.</div>
-        )}
-      </section>
 
-      <section
-        style={{
-          border: '1px solid #e4e4e7',
-          borderRadius: 12,
-          padding: 16,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
-        <div style={{ fontWeight: 600 }}>Current Split (Sepolia)</div>
-        {address ? (
-          splitRead.isLoading ? (
-            <div>Loading…</div>
-          ) : splitRead.error ? (
-            <div style={{ color: '#b00020' }}>
-              Failed to load: {splitRead.error.message}
-            </div>
-          ) : parsedSplit.length === 0 ? (
-            <div style={{ color: '#666' }}>No split found.</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {parsedSplit.map((row, i) => (
-                <RecipientLine
-                  key={`${row.address}-${i}`}
-                  address={row.address}
-                  bps={row.bps}
+            {connectError && (
+              <div className="notice error">{connectError.message}</div>
+            )}
+            {switchError && (
+              <div className="notice error">{switchError.message}</div>
+            )}
+            {!hasInjectedProvider && (
+              <div className="notice error">
+                No injected wallet detected. Install or enable MetaMask, then
+                reload.
+              </div>
+            )}
+
+            {isConnected && address ? (
+              <div className="row">
+                <div className="avatar">
+                  {ensAvatar.data ? (
+                    <img
+                      src={ensAvatar.data}
+                      alt="ENS avatar"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    'No avatar'
+                  )}
+                </div>
+                <div className="stack" style={{ gap: 6 }}>
+                  <div style={{ fontWeight: 600 }}>
+                    {ensName.data ?? 'No ENS name set'}
+                  </div>
+                  <div className="row" style={{ justifyContent: 'flex-start' }}>
+                    <div className="mono">{address}</div>
+                    <CopyButton value={address} label="Copy" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="muted">Not connected.</div>
+            )}
+          </section>
+
+          <TextRecordsLookup />
+        </div>
+
+        <div className="stack">
+          <section className="card">
+            <div className="section-title">Current Split (Sepolia)</div>
+            {address ? (
+              splitRead.isLoading ? (
+                <div className="notice pending">Loading…</div>
+              ) : splitRead.error ? (
+                <div className="notice error">
+                  Failed to load: {splitRead.error.message}
+                </div>
+              ) : parsedSplit.length === 0 ? (
+                <div className="muted">No split found.</div>
+              ) : (
+                <div className="stack">
+                  {parsedSplit.map((row, i) => (
+                    <RecipientLine
+                      key={`${row.address}-${i}`}
+                      address={row.address}
+                      bps={row.bps}
+                    />
+                  ))}
+                </div>
+              )
+            ) : (
+              <div className="muted">Connect to read your split.</div>
+            )}
+          </section>
+
+          <section className="card">
+            <div className="section-title">Set Split</div>
+            <form className="stack" onSubmit={onSubmit}>
+              <label className="stack">
+                <span className="muted">Recipients (one per line)</span>
+                <textarea
+                  className="textarea"
+                  value={recipientsInput}
+                  onChange={(e) => setRecipientsInput(e.target.value)}
+                  placeholder="0xabc...\n0xdef..."
+                  rows={4}
                 />
-              ))}
-            </div>
-          )
-        ) : (
-          <div style={{ color: '#666' }}>Connect to read your split.</div>
-        )}
-      </section>
+              </label>
+              <label className="stack">
+                <span className="muted">Bps (one per line, sum to 10000)</span>
+                <textarea
+                  className="textarea"
+                  value={bpsInput}
+                  onChange={(e) => setBpsInput(e.target.value)}
+                  placeholder="5000\n5000"
+                  rows={4}
+                />
+              </label>
+              {validationError && (
+                <div className="notice error">{validationError}</div>
+              )}
+              {writeError && (
+                <div className="notice error">{writeError.message}</div>
+              )}
+              <button className="btn" type="submit" disabled={isWriting}>
+                {isWriting ? 'Submitting…' : 'Submit Split'}
+              </button>
+            </form>
 
-      <section
-        style={{
-          border: '1px solid #e4e4e7',
-          borderRadius: 12,
-          padding: 16,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
-        <div style={{ fontWeight: 600 }}>Set Split</div>
-        <form
-          onSubmit={onSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
-        >
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span>Recipients (one per line)</span>
-            <textarea
-              value={recipientsInput}
-              onChange={(e) => setRecipientsInput(e.target.value)}
-              placeholder="0xabc...\n0xdef..."
-              rows={4}
-            />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span>Bps (one per line, sum to 10000)</span>
-            <textarea
-              value={bpsInput}
-              onChange={(e) => setBpsInput(e.target.value)}
-              placeholder="5000\n5000"
-              rows={4}
-            />
-          </label>
-          {validationError && (
-            <div style={{ color: '#b00020' }}>{validationError}</div>
-          )}
-          {writeError && (
-            <div style={{ color: '#b00020' }}>{writeError.message}</div>
-          )}
-          <button type="submit" disabled={isWriting}>
-            {isWriting ? 'Submitting…' : 'Submit Split'}
-          </button>
-        </form>
-
-        {submittedHash && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div>
-              Tx hash:{' '}
-              <span style={{ fontFamily: 'monospace' }}>{submittedHash}</span>
-            </div>
-            <div>
-              Status:{' '}
-              {txReceipt.isLoading
-                ? 'Confirming…'
-                : txReceipt.isSuccess
-                  ? 'Confirmed'
-                  : txReceipt.isError
-                    ? 'Failed'
-                    : 'Pending'}
-            </div>
-          </div>
-        )}
-      </section>
-
-      <TextRecordsLookup />
+            {submittedHash && (
+              <div className="stack">
+                <div className="row" style={{ justifyContent: 'flex-start' }}>
+                  <div className="mono">{submittedHash}</div>
+                  <CopyButton value={submittedHash} label="Copy" />
+                </div>
+                <div className="notice pending">
+                  {txReceipt.isLoading
+                    ? 'Confirming…'
+                    : txReceipt.isSuccess
+                      ? 'Confirmed'
+                      : txReceipt.isError
+                        ? 'Failed'
+                        : 'Pending'}
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
     </div>
   )
 }

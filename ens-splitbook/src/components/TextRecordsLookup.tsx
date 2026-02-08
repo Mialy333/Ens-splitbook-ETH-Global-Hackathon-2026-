@@ -2,11 +2,13 @@ import { useMemo, useState } from 'react'
 import { normalize } from 'viem/ens'
 import { mainnet } from 'wagmi/chains'
 import { useEnsAvatar, useEnsText } from 'wagmi'
+import { CopyButton } from './CopyButton'
 
 type RecordRow = { key: string; value: string | null | undefined }
 
 export function TextRecordsLookup() {
   const [input, setInput] = useState('')
+  const [customKey, setCustomKey] = useState('')
   const normalizedName = useMemo(() => {
     if (!input.trim()) return ''
     try {
@@ -46,52 +48,49 @@ export function TextRecordsLookup() {
     chainId: mainnet.id,
     query: { enabled: !!normalizedName },
   })
+  const customRecord = useEnsText({
+    name: normalizedName || undefined,
+    key: customKey || 'custom',
+    chainId: mainnet.id,
+    query: { enabled: !!normalizedName && !!customKey },
+  })
 
   const rows: RecordRow[] = [
     { key: 'url', value: urlRecord.data },
     { key: 'com.twitter', value: twitterRecord.data },
     { key: 'com.github', value: githubRecord.data },
     { key: 'description', value: descriptionRecord.data },
+    ...(customKey
+      ? [{ key: customKey, value: customRecord.data }]
+      : []),
   ]
 
   return (
-    <section
-      style={{
-        border: '1px solid #e4e4e7',
-        borderRadius: 12,
-        padding: 16,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 12,
-      }}
-    >
-      <div style={{ fontWeight: 600 }}>ENS Text Records</div>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span>ENS name</span>
+    <section className="card">
+      <div className="section-title">ENS Text Records</div>
+      <label className="stack">
+        <span className="muted">ENS name</span>
         <input
+          className="input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="vitalik.eth"
         />
       </label>
       {input && !normalizedName && (
-        <div style={{ color: '#b00020' }}>Invalid ENS name.</div>
+        <div className="notice error">Invalid ENS name.</div>
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            background: '#f3f4f6',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 12,
-            color: '#666',
-          }}
-        >
+      <label className="stack">
+        <span className="muted">Custom text record key (optional)</span>
+        <input
+          className="input"
+          value={customKey}
+          onChange={(e) => setCustomKey(e.target.value.trim())}
+          placeholder="com.discord"
+        />
+      </label>
+      <div className="row">
+        <div className="avatar">
           {avatar.data ? (
             <img
               src={avatar.data}
@@ -102,43 +101,29 @@ export function TextRecordsLookup() {
             'No avatar'
           )}
         </div>
-        <div style={{ color: '#666' }}>
-          {normalizedName || 'Enter a valid ENS name to load records.'}
+        <div className="stack" style={{ gap: 6 }}>
+          <div className="muted">
+            {normalizedName || 'Enter a valid ENS name to load records.'}
+          </div>
+          {normalizedName && (
+            <div className="row" style={{ justifyContent: 'flex-start' }}>
+              <div className="mono">{normalizedName}</div>
+              <CopyButton value={normalizedName} label="Copy" />
+            </div>
+          )}
         </div>
       </div>
-      <div
-        style={{
-          border: '1px solid #e4e4e7',
-          borderRadius: 10,
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '160px 1fr',
-            background: '#f8f8f8',
-            fontWeight: 600,
-          }}
-        >
-          <div style={{ padding: '8px 10px' }}>Key</div>
-          <div style={{ padding: '8px 10px' }}>Value</div>
+      <div className="table">
+        <div className="table-row table-head">
+          <div className="table-cell">Key</div>
+          <div className="table-cell">Value</div>
         </div>
         {rows.map((row) => (
-          <div
-            key={row.key}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '160px 1fr',
-              borderTop: '1px solid #e4e4e7',
-            }}
-          >
-            <div style={{ padding: '8px 10px' }}>{row.key}</div>
+          <div key={row.key} className="table-row">
+            <div className="table-cell">{row.key}</div>
             <div
-              style={{
-                padding: '8px 10px',
-                color: row.value ? '#111' : '#666',
-              }}
+              className="table-cell"
+              style={{ color: row.value ? '#e6f1ff' : '#a2acc3' }}
             >
               {row.value ?? '—'}
             </div>

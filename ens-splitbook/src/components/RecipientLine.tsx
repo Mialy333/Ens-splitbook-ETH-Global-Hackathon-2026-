@@ -1,6 +1,7 @@
 import { useEnsAddress, useEnsName } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
 import { shortenAddress } from '../lib/ui'
+import { CopyButton } from './CopyButton'
 
 type Props = {
   address: `0x${string}`
@@ -23,9 +24,12 @@ export function RecipientLine({ address, bps }: Props) {
   const label = isVerified ? reverse.data! : shortenAddress(address)
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-      <div>{label}</div>
-      <div style={{ fontVariantNumeric: 'tabular-nums' }}>{bps} bps</div>
+    <div className="row">
+      <div className="mono">{label}</div>
+      <div className="row" style={{ justifyContent: 'flex-end' }}>
+        <div className="mono">{bps} bps</div>
+        <CopyButton value={address} label="Copy" />
+      </div>
     </div>
   )
 }
