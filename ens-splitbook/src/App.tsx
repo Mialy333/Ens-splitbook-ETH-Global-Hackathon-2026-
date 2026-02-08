@@ -32,8 +32,11 @@ function App() {
   } = useConnect()
   const { disconnect } = useDisconnect()
   const chainId = useChainId()
-  const { switchChain, isPending: isSwitching, error: switchError } =
-    useSwitchChain()
+  const {
+    switchChain,
+    isPending: isSwitching,
+    error: switchError,
+  } = useSwitchChain()
 
   const ensName = useEnsName({ address, chainId: mainnet.id })
   const ensAvatar = useEnsAvatar({
@@ -79,8 +82,7 @@ function App() {
     return recipients.map((addr, i) => ({ address: addr, bps: Number(bps[i]) }))
   }, [splitRead.data])
 
-  const hasInjectedProvider =
-    typeof window !== 'undefined' && !!window.ethereum
+  const hasInjectedProvider = typeof window !== 'undefined' && !!window.ethereum
   const canConnect = connectors.length > 0 && hasInjectedProvider
   const injectedConnector =
     connectors.find((c) => c.id === 'metaMask') ??
@@ -157,9 +159,7 @@ function App() {
       <header className="header">
         <div>
           <div className="title">SplitBook + ENS</div>
-          <div className="subtitle">
-            ENS on mainnet • SplitBook on Sepolia
-          </div>
+          <div className="subtitle">ENS on mainnet • SplitBook on Sepolia</div>
         </div>
         <div className="row">
           <span className="badge">ENS: Mainnet</span>
@@ -183,7 +183,10 @@ function App() {
               <div className="section-title">Wallet + ENS Profile</div>
               <div className="row" style={{ justifyContent: 'flex-end' }}>
                 {isConnected ? (
-                  <button className="btn secondary" onClick={() => disconnect()}>
+                  <button
+                    className="btn secondary"
+                    onClick={() => disconnect()}
+                  >
                     Disconnect
                   </button>
                 ) : (
@@ -225,7 +228,11 @@ function App() {
                     <img
                       src={ensAvatar.data}
                       alt="ENS avatar"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
                     />
                   ) : (
                     'No avatar'
